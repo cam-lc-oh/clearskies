@@ -498,17 +498,32 @@ const AQMap = () => {
           Markers
         </button>
         <div className="mt-1 bg-card rounded-lg shadow-md overflow-hidden hidden [@media(min-width:500px)]:block">
-          {(['light', 'dark', 'satellite'] as const).map((style) => (
-            <button
-              key={style}
-              onClick={() => setMapStyle(style)}
-              className={`block w-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                mapStyle === style ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:bg-muted'
-              }`}
-            >
-              {style.charAt(0).toUpperCase() + style.slice(1)}
-            </button>
-          ))}
+          {([
+            { key: 'map', label: 'Map' },
+            { key: 'satellite', label: 'Satellite' },
+          ] as const).map(({ key, label }) => {
+            const selected =
+              key === 'satellite' ? mapStyle === 'satellite' : mapStyle !== 'satellite';
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  if (key === 'satellite') {
+                    setMapStyle('satellite');
+                  } else {
+                    // "Map" picks light or dark based on the current theme.
+                    const isDark = document.documentElement.classList.contains('dark');
+                    setMapStyle(isDark ? 'dark' : 'light');
+                  }
+                }}
+                className={`block w-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  selected ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:bg-muted'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
