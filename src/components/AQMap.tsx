@@ -45,12 +45,15 @@ const FitBounds = ({ sensors }: { sensors: any[] }) => {
         ])
       );
       if (bounds.isValid()) {
-  map.fitBounds(bounds, {
-    paddingTopLeft: [50, 50],
-    paddingBottomRight: [150, 100], // Prevent overlap with legend/buttons
-  });
-}
-
+        map.fitBounds(bounds, {
+          paddingTopLeft: [50, 50],
+          paddingBottomRight: [150, 100],
+          maxZoom: 13,
+        });
+        if (map.getZoom() < 10) {
+          map.setZoom(10);
+        }
+      }
     }
   }, [map, sensors]);
 
@@ -276,6 +279,7 @@ const AQMap = () => {
       <MapContainer
         center={[39.9612, -82.9988]}
         zoom={13}
+        minZoom={9}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
         ref={(map) => setMapInstance(map)}
