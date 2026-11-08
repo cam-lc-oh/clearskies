@@ -240,6 +240,22 @@ const AQMap = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Re-flow map when its container resizes (iframe resize, mobile rotation, etc.)
+  useEffect(() => {
+    if (!mapInstance) return;
+    const container = mapInstance.getContainer();
+    const ro = new ResizeObserver(() => {
+      mapInstance.invalidateSize();
+    });
+    ro.observe(container);
+    const onWinResize = () => mapInstance.invalidateSize();
+    window.addEventListener('resize', onWinResize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', onWinResize);
+    };
+  }, [mapInstance]);
+
   const tileUrls: Record<string, { url: string; attribution: string }> = {
     light: {
       url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
