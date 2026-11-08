@@ -352,109 +352,94 @@ const AQMap = () => {
               )}
               eventHandlers={{
                 click: (e) => {
-  const map = e.target._map as L.Map;
-  const marker = e.target as L.Marker;
-  const latlng = marker.getLatLng();
-  setSelectedSensor(sensor.id);
+                  const map = e.target._map as L.Map;
+                  const marker = e.target as L.Marker;
+                  setSelectedSensor(sensor.id);
 
-  const offsetLatLng = L.latLng(latlng.lat + 0.0015, latlng.lng); // Offset upward
-
-  if (map.getZoom() < 15) {
-    map.flyTo(offsetLatLng, 15, { animate: true, duration: 0.5 });
-    map.once('zoomend moveend', () => {
-      if (marker.getPopup() && !marker.isPopupOpen()) marker.openPopup();
-    });
-  } else {
-    map.panTo(offsetLatLng, { animate: true });
-    if (marker.getPopup() && !marker.isPopupOpen()) marker.openPopup();
-  }
-}
-,
+                  // On narrow viewports (iframes on phones) skip the big
+                  // fly-to-zoom-15 because it pushes the popup off-screen.
+                  // Let Leaflet's own autoPan + keepInView bring the popup
+                  // into view instead.
+                  const viewportWidth = map.getContainer().clientWidth;
+                  if (viewportWidth >= 500 && map.getZoom() < 14) {
+                    const latlng = marker.getLatLng();
+                    map.flyTo(latlng, 14, { animate: true, duration: 0.4 });
+                    map.once('zoomend moveend', () => {
+                      if (marker.getPopup() && !marker.isPopupOpen()) marker.openPopup();
+                    });
+                  } else {
+                    if (marker.getPopup() && !marker.isPopupOpen()) marker.openPopup();
+                  }
+                },
               }}
             >
-              <Popup>
-                <div className="p-1 w-56"> {/* Increased width slightly for better spacing */}
-                  <button
-                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors z-[1]" // Ensure button is clickable
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      if (mapInstance) mapInstance.closePopup();
-                      setSelectedSensor(null);
-                    }}
-                    aria-label="Close popup"
-                  >
-                 
-                  </button>
-
-                  <div className="font-semibold text-base mb-1 pr-5">
+              <Popup maxWidth={220} minWidth={180} autoPan keepInView>
+                <div className="p-0.5 w-[180px]">
+                  <div className="font-semibold text-sm leading-tight mb-1.5">
                     {(sensor as any).nickname || sensor.name}
                   </div>
 
-                  <div className="flex items-center flex-wrap gap-1.5 my-1.5">
-                    <div
-                      className="text-xs inline-block px-2 py-1 rounded-full font-medium"
+                  <div className="flex items-center flex-wrap gap-1 mb-2">
+                    <span
+                      className="text-[10px] inline-block px-1.5 py-0.5 rounded-full font-semibold"
                       style={{
                         backgroundColor: `${sensor.aqiCategory?.color || '#e5e7eb'}33`,
                         color: sensor.aqiCategory?.color || '#4b5563'
                       }}
                     >
                       {sensor.aqiCategory?.category || 'N/A'}
-                    </div>
+                    </span>
                     {(sensor as any).region && (
-                      <div
-                        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium"
+                      <span
+                        className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-semibold"
                         style={{
                           backgroundColor: `${getRegionColor((sensor as any).region)}22`,
                           color: getRegionColor((sensor as any).region),
                         }}
                       >
                         <span
-                          className="w-2 h-2 rounded-full"
+                          className="w-1.5 h-1.5 rounded-full"
                           style={{ backgroundColor: getRegionColor((sensor as any).region) }}
                         />
-                        Region {(sensor as any).region}
-                      </div>
+                        {(sensor as any).region}
+                      </span>
                     )}
                   </div>
 
-                  <div className="space-y-1.5 text-xs mt-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">PM2.5:</span>
-                      <span className="font-semibold">{formatPM25(sensor.pm25)} µg/m³</span>
+                  <div className="grid grid-cols-3 gap-1 text-[11px] mb-2">
+                    <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">PM2.5</div>
+                      <div className="font-semibold">{formatPM25(sensor.pm25)}</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Temperature:</span>
-                      <span className="font-semibold">{sensor.temperature?.toFixed(1) ?? 'N/A'} °C</span>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">Temp</div>
+                      <div className="font-semibold">{sensor.temperature?.toFixed(0) ?? '—'}°C</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Humidity:</span>
-                      <span className="font-semibold">{sensor.humidity?.toFixed(0) ?? 'N/A'}%</span>
-                    </div>
-
-                    <div className="flex justify-between pt-1 border-t border-gray-200 mt-1.5">
-                      <span className="text-gray-500 text-xs">Last Updated:</span>
-                      <span className="font-medium text-xs">
-                        {sensor.lastUpdated ? new Date(sensor.lastUpdated + 'Z').toLocaleString([], {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        }) : 'N/A'}
-                      </span>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">Humid</div>
+                      <div className="font-semibold">{sensor.humidity?.toFixed(0) ?? '—'}%</div>
                     </div>
                   </div>
-                </div>
-                <button
-                  className="mt-3 w-full text-center bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold py-1.5 rounded-md transition-all"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/dashboard?sensorId=${sensor.id}#charts`);
-                  }}
-                >
-                  View Details
-                </button>
 
+                  <div className="text-[9px] text-gray-500 text-center mb-1.5">
+                    Updated {sensor.lastUpdated ? new Date(sensor.lastUpdated + 'Z').toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    }) : '—'}
+                  </div>
+
+                  <button
+                    className="w-full text-center bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] font-semibold py-1 rounded transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/dashboard?sensorId=${sensor.id}#charts`);
+                    }}
+                  >
+                    View Details
+                  </button>
+                </div>
               </Popup>
             </Marker>
           );
