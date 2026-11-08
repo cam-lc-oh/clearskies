@@ -20,25 +20,12 @@ import ScrollToTop from "./components/ScrollToTop";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Check for user preference on dark mode
-  // useEffect(() => {
-  //   if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-  //     document.documentElement.classList.add("dark");
-  //   }
-
-  //   // Listen for changes to the prefers-color-scheme media query
-  //   const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  //   const handleChange = (e: MediaQueryListEvent) => {
-  //     if (e.matches) {
-  //       document.documentElement.classList.add("dark");
-  //     } else {
-  //       document.documentElement.classList.remove("dark");
-  //     }
-  //   };
-
-  //   mediaQuery.addEventListener("change", handleChange);
-  //   return () => mediaQuery.removeEventListener("change", handleChange);
-  // }, []);
+  // Dark mode is the brand default for CAM-LC. Apply the .dark class once
+  // on mount so every route picks up the dark palette; the EmbedMap route
+  // forces this too for defensive measure.
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
