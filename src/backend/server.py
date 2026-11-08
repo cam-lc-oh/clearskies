@@ -115,18 +115,21 @@ def get_allowed_sensors() -> Dict[str, Dict[str, Optional[str]]]:
         if not rows:
             return {}
         header = [h.strip().lower() for h in rows[0]]
+        # Keyed by nickname (lowercased) because simpleaq exposes the
+        # human-readable name field, not the sheet's numeric ID column.
         allowed: Dict[str, Dict[str, Optional[str]]] = {}
         for row in rows[1:]:
             padded = row + [""] * (len(header) - len(row))
             entry = dict(zip(header, padded))
             if str(entry.get("active", "")).strip().upper() not in ("TRUE", "YES", "1"):
                 continue
-            sid = str(entry.get("id", "")).strip()
-            if not sid:
+            nickname = str(entry.get("nickname", "")).strip()
+            if not nickname:
                 continue
-            allowed[sid] = {
+            allowed[nickname.lower()] = {
                 "region": (str(entry.get("region", "")).strip() or None),
-                "nickname": (str(entry.get("nickname", "")).strip() or None),
+                "nickname": nickname,
+                "sheet_id": (str(entry.get("id", "")).strip() or None),
             }
         _SHEETS_CACHE["data"] = allowed
         _SHEETS_CACHE["ts"] = now
@@ -406,11 +409,18 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
         return sensors
 
     # Filter the bbox result down to the sensors CAM-LC curates in the sheet.
-    # If the sheet isn't configured (allowed is empty), fall through to the old
-    # bbox-only behavior so nothing breaks during setup.
-    allowed = get_allowed_sensors()
+    # Matching: the simpleaq dict key is an internal cuid (like 'cm9ufuy...'),
+    # but each entry's 'name' field matches the sheet's Nickname column
+    # ('CAW25020', 'DIRTYBOX', 'Tracee', etc.), so match on name (case-
+    # insensitive). If the sheet isn't configured (allowed is empty), fall
+    # through to the old bbox-only behavior so nothing breaks during setup.
+    allowed = get_allowed_sensors()  # keyed by nickname (lowercased)
     if allowed:
-        sensor_json = {sid: data for sid, data in sensor_json.items() if sid in allowed}
+        sensor_json = {
+            sid: data
+            for sid, data in sensor_json.items()
+            if str(data.get("name") or "").strip().lower() in allowed
+        }
 
     fields = ["pm2.5_ug_m3", "pressure_hPa", "temperature_C", "humidity_percent"]
     timestamp_str = datetime.now().isoformat()
@@ -492,7 +502,9 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
             except Exception:
                 last_updated = datetime.now()
 
-            allowed_meta = allowed.get(sensor_id, {}) if allowed else {}
+            allowed_meta = (
+                allowed.get(str(name or "").strip().lower(), {}) if allowed else {}
+            )
             sensor_obj = Sensor(
                 id=sensor_id,
                 name=name,
