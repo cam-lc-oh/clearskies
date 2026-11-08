@@ -127,17 +127,17 @@ const CurrentLocationButton = () => {
     <button
       onClick={handleLocate}
       disabled={isLocating}
-      className="absolute top-4 right-4 z-[1000] bg-white dark:bg-gray-800 p-2.5 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
+      className="absolute top-4 right-4 z-[1000] bg-card p-2.5 rounded-lg shadow-lg hover:bg-muted transition-colors disabled:opacity-60"
       title="Show my location"
       aria-label="Show my location"
     >
       {isLocating ? (
-        <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       ) : (
-        <LocateFixed className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+        <LocateFixed className="h-5 w-5 text-foreground" />
       )}
     </button>
   );
@@ -163,11 +163,11 @@ const RecenterButton = ({ sensors }: { sensors: any[] }) => {
   return (
     <button
       onClick={handleRecenter}
-      className="absolute top-16 right-4 z-[1000] bg-white dark:bg-gray-800 p-2.5 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      className="absolute top-16 right-4 z-[1000] bg-card p-2.5 rounded-lg shadow-lg hover:bg-muted transition-colors"
       title="Recenter to show all sensors"
       aria-label="Recenter map to all sensors"
     >
-      <Crosshair className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+      <Crosshair className="h-5 w-5 text-foreground" />
     </button>
   );
 };
@@ -423,18 +423,18 @@ const AQMap = () => {
         <button
           onClick={() => setShowMarkers(!showMarkers)}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium shadow-md transition-all ${
-            showMarkers ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            showMarkers ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'
           }`}
         >
           Markers
         </button>
-        <div className="mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="mt-1 bg-card rounded-lg shadow-md overflow-hidden hidden [@media(min-width:500px)]:block">
           {(['light', 'dark', 'satellite'] as const).map((style) => (
             <button
               key={style}
               onClick={() => setMapStyle(style)}
               className={`block w-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                mapStyle === style ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                mapStyle === style ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:bg-muted'
               }`}
             >
               {style.charAt(0).toUpperCase() + style.slice(1)}
@@ -443,28 +443,55 @@ const AQMap = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-16 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-3 py-2.5 rounded-lg shadow-md text-xs z-[1000]">
-        <div className="font-medium mb-1.5 text-gray-700 dark:text-gray-200">AQI Legend</div>
+      {/* AQI Legend. On narrow iframes (<500px) renders as a floating "i"
+          toggle to preserve map area; otherwise shows inline. */}
+      <AQILegend />
+    </div>
+  );
+};
+
+const AQI_LEGEND_ITEMS = [
+  { label: 'Good', color: '#4ade80' },
+  { label: 'Moderate', color: '#facc15' },
+  { label: 'Unhealthy for Sensitive', color: '#f97316' },
+  { label: 'Unhealthy', color: '#ef4444' },
+  { label: 'Very Unhealthy', color: '#8b5cf6' },
+  { label: 'Hazardous', color: '#7f1d1d' },
+];
+
+const AQILegend = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      {/* Compact toggle shown ONLY on narrow iframes. */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-label="AQI legend"
+        className="absolute bottom-16 right-4 z-[1001] bg-card text-foreground w-9 h-9 rounded-full shadow-md flex items-center justify-center text-sm font-semibold [@media(min-width:500px)]:hidden"
+      >
+        {open ? '×' : 'i'}
+      </button>
+
+      {/* Full legend: always visible at >=500px, toggleable below. */}
+      <div
+        className={`absolute bottom-28 right-4 [@media(min-width:500px)]:bottom-16 bg-card/90 backdrop-blur-md px-3 py-2.5 rounded-lg shadow-md text-xs z-[1000] ${
+          open ? 'block' : 'hidden'
+        } [@media(min-width:500px)]:block`}
+      >
+        <div className="font-medium mb-1.5 text-foreground">AQI Legend</div>
         <div className="flex flex-col space-y-1">
-          {[
-            { label: 'Good', color: '#4ade80' },
-            { label: 'Moderate', color: '#facc15' },
-            { label: 'Unhealthy for Sensitive', color: '#f97316' },
-            { label: 'Unhealthy', color: '#ef4444' },
-            { label: 'Very Unhealthy', color: '#8b5cf6' },
-            { label: 'Hazardous', color: '#7f1d1d' },
-          ].map((item) => (
+          {AQI_LEGEND_ITEMS.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div
-                className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600"
+                className="w-3 h-3 rounded-full border border-border"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="text-gray-600 dark:text-gray-300">{item.label}</span>
+              <span className="text-foreground/80">{item.label}</span>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
