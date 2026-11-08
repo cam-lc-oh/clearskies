@@ -64,6 +64,78 @@ def get_subscriber_emails():
     docs = emails_ref.stream()
     return [doc.to_dict().get("email") for doc in docs]
 
+# ----------------------------------------
+# Google Sheets sensor list (source of truth for which monitors show on the map)
+# ----------------------------------------
+from google.oauth2 import service_account as _service_account
+from googleapiclient.discovery import build as _gbuild
+
+_SHEETS_CACHE: Dict[str, Any] = {"data": None, "ts": 0.0}
+_SHEETS_CACHE_TTL = 300  # seconds
+
+def _load_sheets_credentials():
+    raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not raw:
+        return None
+    try:
+        info = _json.loads(raw)
+        return _service_account.Credentials.from_service_account_info(
+            info, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+    except Exception as e:
+        print(f"[sheets] Could not parse service account JSON: {e}")
+        return None
+
+def get_allowed_sensors() -> Dict[str, Dict[str, Optional[str]]]:
+    """
+    Return {sensor_id: {region, nickname}} for sensors marked Active in the sheet.
+    Empty dict if sheet isn't configured (backend falls back to bbox-only behavior).
+    Results cached for _SHEETS_CACHE_TTL seconds.
+    """
+    now = time.time()
+    if _SHEETS_CACHE["data"] is not None and (now - _SHEETS_CACHE["ts"]) < _SHEETS_CACHE_TTL:
+        return _SHEETS_CACHE["data"]
+
+    sheet_id = os.getenv("SENSORS_SHEET_ID")
+    if not sheet_id:
+        print("[sheets] SENSORS_SHEET_ID not set. Showing all bbox sensors.")
+        return {}
+    creds = _load_sheets_credentials()
+    if creds is None:
+        print("[sheets] No service account credentials. Showing all bbox sensors.")
+        return {}
+
+    try:
+        service = _gbuild("sheets", "v4", credentials=creds, cache_discovery=False)
+        result = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id,
+            range="A1:D500",
+        ).execute()
+        rows = result.get("values", [])
+        if not rows:
+            return {}
+        header = [h.strip().lower() for h in rows[0]]
+        allowed: Dict[str, Dict[str, Optional[str]]] = {}
+        for row in rows[1:]:
+            padded = row + [""] * (len(header) - len(row))
+            entry = dict(zip(header, padded))
+            if str(entry.get("active", "")).strip().upper() not in ("TRUE", "YES", "1"):
+                continue
+            sid = str(entry.get("id", "")).strip()
+            if not sid:
+                continue
+            allowed[sid] = {
+                "region": (str(entry.get("region", "")).strip() or None),
+                "nickname": (str(entry.get("nickname", "")).strip() or None),
+            }
+        _SHEETS_CACHE["data"] = allowed
+        _SHEETS_CACHE["ts"] = now
+        print(f"[sheets] Loaded {len(allowed)} active sensors from sheet")
+        return allowed
+    except Exception as e:
+        print(f"[sheets] Failed to fetch sheet: {e}")
+        return _SHEETS_CACHE.get("data") or {}
+
 ###
 def load_prev_safe_ids():
     try:
@@ -243,6 +315,8 @@ class Sensor(BaseModel):
     pressure: float
     aqi: Optional[float] = None
     aqiCategory: Optional[AQICategory] = None
+    region: Optional[str] = None
+    nickname: Optional[str] = None
 
 
 class HistoricalDataPoint(BaseModel):
@@ -278,11 +352,13 @@ DATA = {
 
 
 def fetch_pm25_data() -> dict:
+    # Widened to cover Central Ohio (Franklin, Delaware, Licking, Fairfield,
+    # Union, Knox, Madison, Pickaway) so CAM-LC can add monitors in any of
+    # those counties via the Google Sheet with no code change.
     url = (
         "https://www.simpleaq.org/api/getdata?field=pm2.5"
-        "&min_lat=39.939889&max_lat=40.277507&min_lon=-82.782446&max_lon=-82.195962"
-        f"&utc_epoch={int(time.time()) * 1000}"  # static timestamp that worked
-
+        "&min_lat=39.500000&max_lat=40.600000&min_lon=-83.600000&max_lon=-82.000000"
+        f"&utc_epoch={int(time.time()) * 1000}"
     )
     try:
         response = httpx.get(url, timeout=10.0)
@@ -328,6 +404,13 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
     sensors = []
     if not sensor_json:
         return sensors
+
+    # Filter the bbox result down to the sensors CAM-LC curates in the sheet.
+    # If the sheet isn't configured (allowed is empty), fall through to the old
+    # bbox-only behavior so nothing breaks during setup.
+    allowed = get_allowed_sensors()
+    if allowed:
+        sensor_json = {sid: data for sid, data in sensor_json.items() if sid in allowed}
 
     fields = ["pm2.5_ug_m3", "pressure_hPa", "temperature_C", "humidity_percent"]
     timestamp_str = datetime.now().isoformat()
@@ -409,6 +492,7 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
             except Exception:
                 last_updated = datetime.now()
 
+            allowed_meta = allowed.get(sensor_id, {}) if allowed else {}
             sensor_obj = Sensor(
                 id=sensor_id,
                 name=name,
@@ -419,7 +503,9 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
                 pressure=pressure,
                 lastUpdated=last_updated,
                 aqi=calculate_aqi(pm25),
-                aqiCategory=get_aqi_category(pm25)
+                aqiCategory=get_aqi_category(pm25),
+                region=allowed_meta.get("region"),
+                nickname=allowed_meta.get("nickname"),
             )
             sensors.append(sensor_obj)
         except Exception as e:
