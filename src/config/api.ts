@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || "https://clearairwave-obf5.onrender.com";
+const API_BASE = import.meta.env.VITE_API_URL || "https://clearskies-backend.onrender.com";
 
 export const API = {
   sensors: `${API_BASE}/api/sensors`,
