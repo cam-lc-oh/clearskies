@@ -33,16 +33,33 @@ load_dotenv()
 todaysPoints = {"count": 0, "date": date.today()} #Gloval Variable
 
 # ----------------------------------------
-#Firebase Integration for Real Time Notifications
+# Firebase Integration for Real Time Notifications (optional)
 # ----------------------------------------
 import firebase_admin
 from firebase_admin import credentials, firestore
+import json as _json
 
-cred = credentials.Certificate("firebase-credentials-new.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+db = None
+try:
+    _firebase_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+    if _firebase_json:
+        cred = credentials.Certificate(_json.loads(_firebase_json))
+    elif os.path.exists("firebase-credentials-new.json"):
+        cred = credentials.Certificate("firebase-credentials-new.json")
+    else:
+        cred = None
+    if cred is not None:
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+    else:
+        print("[firebase] No credentials provided. Email subscriber features disabled.")
+except Exception as _e:
+    print(f"[firebase] Init failed, continuing without Firebase: {_e}")
+    db = None
 
 def get_subscriber_emails():
+    if db is None:
+        return []
     emails_ref = db.collection("emails")
     docs = emails_ref.stream()
     return [doc.to_dict().get("email") for doc in docs]
