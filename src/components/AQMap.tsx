@@ -238,24 +238,19 @@ const AQMap = () => {
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
+  // Tile picker: Light is the standalone dashboard default; the embed
+  // (which sits inside a dark Google Site) starts on Dark instead so it
+  // blends with the host page. Users can switch via the picker either way.
+  const isEmbedContext =
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/embed');
   const [mapStyle, setMapStyle] = useState<'light' | 'dark' | 'satellite'>(
-    () => document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    isEmbedContext ? 'dark' : 'light',
   );
   const [regionFilter, setRegionFilter] = useState<'all' | 'A' | 'B' | 'C'>('all');
 
   const visibleSensors = regionFilter === 'all'
     ? sensors
     : sensors.filter((s) => s.region === regionFilter);
-
-  // Sync map style with dark mode toggle
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setMapStyle(prev => prev === 'satellite' ? prev : isDark ? 'dark' : 'light');
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   // Re-flow map when its container resizes (iframe resize, mobile rotation, etc.)
   useEffect(() => {
@@ -483,32 +478,17 @@ const AQMap = () => {
           Markers
         </button>
         <div className="mt-1 bg-card rounded-lg shadow-md overflow-hidden hidden [@media(min-width:500px)]:block">
-          {([
-            { key: 'map', label: 'Map' },
-            { key: 'satellite', label: 'Satellite' },
-          ] as const).map(({ key, label }) => {
-            const selected =
-              key === 'satellite' ? mapStyle === 'satellite' : mapStyle !== 'satellite';
-            return (
-              <button
-                key={key}
-                onClick={() => {
-                  if (key === 'satellite') {
-                    setMapStyle('satellite');
-                  } else {
-                    // "Map" picks light or dark based on the current theme.
-                    const isDark = document.documentElement.classList.contains('dark');
-                    setMapStyle(isDark ? 'dark' : 'light');
-                  }
-                }}
-                className={`block w-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  selected ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:bg-muted'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+          {(['light', 'dark', 'satellite'] as const).map((style) => (
+            <button
+              key={style}
+              onClick={() => setMapStyle(style)}
+              className={`block w-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                mapStyle === style ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:bg-muted'
+              }`}
+            >
+              {style.charAt(0).toUpperCase() + style.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 

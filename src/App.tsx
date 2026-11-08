@@ -20,12 +20,8 @@ import ScrollToTop from "./components/ScrollToTop";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Dark mode is the brand default for CAM-LC. Apply the .dark class once
-  // on mount so every route picks up the dark palette; the EmbedMap route
-  // forces this too for defensive measure.
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
+  // Dashboard default is light; individual routes (e.g. EmbedMap) can
+  // apply the .dark class on mount if the host page needs dark mode.
 
   return (
     <QueryClientProvider client={queryClient}>
