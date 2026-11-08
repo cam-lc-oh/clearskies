@@ -6,80 +6,87 @@
 @layer base {
   /*
    * Community Air Monitoring brand palette.
-   * Olive green primary, gold accent, dark near-black backgrounds.
-   * These tokens flow through to every themed component (buttons, cards,
-   * charts, map controls, focus rings) via Tailwind + shadcn/ui.
+   * Olive green primary (#7a9c1f) and gold accent (#eab308) in both themes;
+   * backgrounds flip between near-white (light) and near-black (dark).
    */
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
 
     --primary: 78 68% 36%;              /* CAM-LC olive #7a9c1f */
-    --primary-foreground: 0 0% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 78 40% 95%;            /* very pale olive wash */
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
     --accent: 43 93% 47%;               /* CAM-LC gold #eab308 */
-    --accent-foreground: 0 0% 4%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 14%;
-    --ring: 43 93% 47%;                 /* gold focus ring */
+    --border: 0 0% 90%;
+    --input: 0 0% 94%;
+    --ring: 78 68% 36%;                 /* olive focus ring */
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 10%;
     --sidebar-primary: 78 68% 36%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 43 93% 47%;
-    --sidebar-accent-foreground: 0 0% 4%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 43 93% 47%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 78 68% 36%;
   }
 
-  /* Dark-mode class is identical to root; the default already *is* dark. */
   .dark {
-    --background: 0 0% 4%;
+    --background: 0 0% 5%;              /* CAM-LC near-black */
     --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
+
+    --card: 0 0% 9%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
+
+    --popover: 0 0% 9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 78 68% 36%;
+
+    --primary: 78 68% 42%;              /* slightly brighter olive for dark */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 12%;
+
+    --secondary: 0 0% 14%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14%;
+
+    --muted: 0 0% 16%;
     --muted-foreground: 0 0% 70%;
-    --accent: 43 93% 47%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 0 72% 51%;
+
+    --accent: 43 93% 50%;               /* slightly brighter gold for dark */
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 14%;
-    --ring: 43 93% 47%;
-    --sidebar-background: 0 0% 7%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 16%;
+    --ring: 43 93% 50%;                 /* gold focus ring in dark */
+
+    --sidebar-background: 0 0% 9%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 78 68% 36%;
+    --sidebar-primary: 78 68% 42%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 43 93% 47%;
-    --sidebar-accent-foreground: 0 0% 4%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 43 93% 47%;
+    --sidebar-accent: 43 93% 50%;
+    --sidebar-accent-foreground: 0 0% 5%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 43 93% 50%;
   }
 }
 

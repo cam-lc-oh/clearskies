@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import AQMap from '@/components/AQMap';
 import { ArrowUpRight } from 'lucide-react';
 import { useSensors } from '@/hooks/useSensors';
@@ -13,6 +13,16 @@ const CAM_COLORS = {
 
 const EmbedMap = () => {
   const { isLoading, error } = useSensors();
+
+  // Embed always runs in dark theme; the Google Site that hosts it is dark.
+  useEffect(() => {
+    const el = document.documentElement;
+    const prev = el.classList.contains('dark');
+    el.classList.add('dark');
+    return () => {
+      if (!prev) el.classList.remove('dark');
+    };
+  }, []);
 
   const dashboardOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const dashboardHref = `${dashboardOrigin}/dashboard`;

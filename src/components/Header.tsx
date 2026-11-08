@@ -67,7 +67,7 @@ const Header = () => {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-6 md:px-8 py-3',
         {
-          'bg-white/90 backdrop-blur-lg shadow-sm dark:bg-gray-900/90': isScrolled,
+          'bg-background/90 backdrop-blur-lg shadow-sm border-b border-border': isScrolled,
           'bg-transparent': !isScrolled,
         }
       )}
@@ -157,7 +157,7 @@ const Header = () => {
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-border shadow-lg animate-slide-down md:hidden dark:bg-gray-900/95">
+        <div className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border shadow-lg animate-slide-down md:hidden">
           <nav className="max-w-7xl mx-auto py-3 px-6">
             <div className="flex flex-col space-y-1">
               {navItems.map((item) => (
