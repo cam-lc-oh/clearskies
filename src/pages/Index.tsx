@@ -22,7 +22,8 @@ const Index = () => {
       <main>
         <div id = "email"></div>
         <HeroSection />
-        <EmailSubscription />
+        {/* Email alerts hidden until Firebase + Pipedream are configured. To re-enable, uncomment the line below. */}
+        {/* <EmailSubscription /> */}
 
         {/* Best Time section */}
         <section className="py-12 bg-gradient-to-b from-white to-secondary/20 dark:from-gray-900 dark:to-gray-800/50">
