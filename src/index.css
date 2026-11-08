@@ -131,6 +131,13 @@
   }
 }
 
+/* Dark-mode map tiles: invert OSM tiles so they look like a proper
+   dark basemap. Only affects the raster tile <img>s, not our markers,
+   popups, or SVG overlays. */
+.leaflet-tiles-dark img.leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.95) saturate(0.85);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

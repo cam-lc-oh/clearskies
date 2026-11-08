@@ -273,13 +273,16 @@ const AQMap = () => {
     };
   }, [mapInstance]);
 
+  // Dark style uses the same OSM tiles as light but applies a CSS invert
+  // filter (see .leaflet-tiles-dark in index.css). No API key needed, works
+  // reliably at any zoom. Satellite swaps to Esri imagery.
   const tileUrls: Record<string, { url: string; attribution: string }> = {
     light: {
       url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },
     dark: {
-      url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },
     satellite: {
@@ -321,6 +324,7 @@ const AQMap = () => {
           key={mapStyle}
           attribution={tileUrls[mapStyle].attribution}
           url={tileUrls[mapStyle].url}
+          className={mapStyle === 'dark' ? 'leaflet-tiles-dark' : ''}
         />
 
         <CurrentLocationButton />
