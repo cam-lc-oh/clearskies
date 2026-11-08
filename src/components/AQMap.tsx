@@ -20,10 +20,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const createColoredIcon = (color: string) => {
+// AQI color = inner fill (health signal). Region color = outer ring
+// (organizational/spatial signal). Both coexist on each marker.
+const REGION_COLORS: Record<string, string> = {
+  A: '#f59e0b', // amber — New Albany Industrial Park
+  B: '#a855f7', // purple — Data Centers
+  C: '#06b6d4', // teal — Other
+};
+
+const getRegionColor = (region?: string | null): string =>
+  (region && REGION_COLORS[region]) || 'rgba(255,255,255,0.7)';
+
+const createColoredIcon = (aqiColor: string, regionColor?: string) => {
+  const ring = regionColor || 'rgba(255,255,255,0.7)';
   return L.divIcon({
     className: 'custom-div-icon',
-    html: `<div style="background-color: ${color}; width: 42px; opacity: 0.8; height: 42px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7), 0 0 0 5px ${color}30; display: flex; align-items: center; justify-content: center;"></div>`,
+    html: `<div style="background-color: ${aqiColor}; width: 42px; opacity: 0.85; height: 42px; border-radius: 50%; box-shadow: 0 0 0 3px ${ring}, 0 0 0 5px ${aqiColor}30; display: flex; align-items: center; justify-content: center;"></div>`,
     iconSize: [42, 42],
     iconAnchor: [21, 21],
   });
@@ -229,6 +241,11 @@ const AQMap = () => {
   const [mapStyle, setMapStyle] = useState<'light' | 'dark' | 'satellite'>(
     () => document.documentElement.classList.contains('dark') ? 'dark' : 'light'
   );
+  const [regionFilter, setRegionFilter] = useState<'all' | 'A' | 'B' | 'C'>('all');
+
+  const visibleSensors = regionFilter === 'all'
+    ? sensors
+    : sensors.filter((s) => s.region === regionFilter);
 
   // Sync map style with dark mode toggle
   useEffect(() => {
@@ -311,11 +328,11 @@ const AQMap = () => {
     <RecenterButton sensors={sensors} />
 
 
-        {sensors.length > 0 && <FitBounds sensors={sensors} />}
+        {visibleSensors.length > 0 && <FitBounds sensors={visibleSensors} />}
 
-        <HeatmapLayer sensors={sensors} visible={showHeatmap} />
+        <HeatmapLayer sensors={visibleSensors} visible={showHeatmap} />
 
-        {showMarkers && sensors.map((sensor) => {
+        {showMarkers && visibleSensors.map((sensor) => {
           const position: [number, number] = [
             sensor.location.lat + getRandomOffset(0.0005),
             sensor.location.lng + getRandomOffset(0.0005)
@@ -325,7 +342,10 @@ const AQMap = () => {
             <Marker
               key={sensor.id}
               position={position}
-              icon={createColoredIcon(sensor.aqiCategory?.color || '#9ca3af')}
+              icon={createColoredIcon(
+                sensor.aqiCategory?.color || '#9ca3af',
+                getRegionColor((sensor as any).region),
+              )}
               eventHandlers={{
                 click: (e) => {
   const map = e.target._map as L.Map;
@@ -362,16 +382,35 @@ const AQMap = () => {
                  
                   </button>
 
-                  <div className="font-semibold text-base mb-1 pr-5">{sensor.name}</div>
+                  <div className="font-semibold text-base mb-1 pr-5">
+                    {(sensor as any).nickname || sensor.name}
+                  </div>
 
-                  <div
-                    className="text-xs inline-block px-2 py-1 rounded-full my-1.5 font-medium"
-                    style={{
-                      backgroundColor: `${sensor.aqiCategory?.color || '#e5e7eb'}33`,
-                      color: sensor.aqiCategory?.color || '#4b5563'
-                    }}
-                  >
-                    {sensor.aqiCategory?.category || 'N/A'}
+                  <div className="flex items-center flex-wrap gap-1.5 my-1.5">
+                    <div
+                      className="text-xs inline-block px-2 py-1 rounded-full font-medium"
+                      style={{
+                        backgroundColor: `${sensor.aqiCategory?.color || '#e5e7eb'}33`,
+                        color: sensor.aqiCategory?.color || '#4b5563'
+                      }}
+                    >
+                      {sensor.aqiCategory?.category || 'N/A'}
+                    </div>
+                    {(sensor as any).region && (
+                      <div
+                        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-full font-medium"
+                        style={{
+                          backgroundColor: `${getRegionColor((sensor as any).region)}22`,
+                          color: getRegionColor((sensor as any).region),
+                        }}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: getRegionColor((sensor as any).region) }}
+                        />
+                        Region {(sensor as any).region}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5 text-xs mt-2">
@@ -403,7 +442,7 @@ const AQMap = () => {
                   </div>
                 </div>
                 <button
-                  className="mt-3 w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 rounded-md transition-all"
+                  className="mt-3 w-full text-center bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold py-1.5 rounded-md transition-all"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/dashboard?sensorId=${sensor.id}#charts`);
@@ -417,6 +456,32 @@ const AQMap = () => {
           );
         })}
       </MapContainer>
+
+      {/* Region filter chips (top-left) */}
+      <div className="absolute top-4 left-14 z-[1000] inline-flex items-center gap-1 bg-card/95 backdrop-blur-sm rounded-full shadow-md p-1 text-[11px] font-medium">
+        {(['all', 'A', 'B', 'C'] as const).map((r) => {
+          const selected = regionFilter === r;
+          const chipColor = r === 'all' ? undefined : REGION_COLORS[r];
+          return (
+            <button
+              key={r}
+              onClick={() => setRegionFilter(r)}
+              className={`px-2.5 py-1 rounded-full transition-all inline-flex items-center gap-1 ${
+                selected ? 'bg-primary text-primary-foreground' : 'text-foreground/70 hover:bg-muted'
+              }`}
+              style={!selected && chipColor ? { color: chipColor } : undefined}
+            >
+              {chipColor && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: chipColor }}
+                />
+              )}
+              {r === 'all' ? 'All' : r}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Layer controls */}
       <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-1.5">
@@ -478,13 +543,32 @@ const AQILegend = () => {
           open ? 'block' : 'hidden'
         } [@media(min-width:500px)]:block`}
       >
-        <div className="font-medium mb-1.5 text-foreground">AQI Legend</div>
-        <div className="flex flex-col space-y-1">
+        <div className="font-medium mb-1.5 text-foreground">AQI (fill)</div>
+        <div className="flex flex-col space-y-1 mb-3">
           {AQI_LEGEND_ITEMS.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div
                 className="w-3 h-3 rounded-full border border-border"
                 style={{ backgroundColor: item.color }}
+              />
+              <span className="text-foreground/80">{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="font-medium mb-1.5 text-foreground">Region (ring)</div>
+        <div className="flex flex-col space-y-1">
+          {[
+            { label: 'A — New Albany Industrial', color: REGION_COLORS.A },
+            { label: 'B — Data Centers', color: REGION_COLORS.B },
+            { label: 'C — Other', color: REGION_COLORS.C },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: 'transparent',
+                  boxShadow: `inset 0 0 0 2px ${item.color}`,
+                }}
               />
               <span className="text-foreground/80">{item.label}</span>
             </div>

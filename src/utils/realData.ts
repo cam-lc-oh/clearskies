@@ -17,6 +17,10 @@ export interface Sensor {
     category: string;
     color: string;
   };
+  /** CAM-LC region (A, B, C...) from the sheet. */
+  region?: string;
+  /** Human-readable label from the sheet (e.g. "CAW25010", "DIRTYBOX"). */
+  nickname?: string;
 }
 
 export interface HistoricalDataPoint {
