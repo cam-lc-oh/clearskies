@@ -13,6 +13,5 @@ export const API = {
   export: (format: string, sensorId: string, timeRange: string) =>
     `${API_BASE}/api/export?format=${format}&sensor_id=${sensorId}&time_range=${timeRange}`,
   networkHealth: `${API_BASE}/api/network-health`,
-  epaComparison: `${API_BASE}/api/epa-comparison`,
   health: `${API_BASE}/health`,
 } as const;

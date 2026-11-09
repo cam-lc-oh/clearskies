@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart2, Users, Globe, Bell } from 'lucide-react';
 import EmailSubscription from '@/components/dashboard/EmailSubscription';
-import EPAComparison from '@/components/EPAComparison';
 import Footer from '@/components/Footer'
 import ScrollReveal from '@/components/ScrollReveal';
 import StreakCounter from '@/components/StreakCounter';
@@ -25,15 +24,6 @@ const Index = () => {
         <HeroSection />
         {/* Email alerts hidden until Firebase + Pipedream are configured. To re-enable, uncomment the line below. */}
         {/* <EmailSubscription /> */}
-
-        {/* EPA regulatory-monitor comparison */}
-        <section className="py-10 bg-background">
-          <div className="max-w-5xl mx-auto px-6 lg:px-8">
-            <ScrollReveal>
-              <EPAComparison />
-            </ScrollReveal>
-          </div>
-        </section>
 
         {/* Best Time section */}
         <section className="py-12 bg-gradient-to-b from-background to-primary/5">
