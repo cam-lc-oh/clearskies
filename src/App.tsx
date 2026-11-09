@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import EmbedMap from "./pages/EmbedMap";
+import LearnPage from "./pages/LearnPage";
 import Contact from "./pages/Contact"
 import NotFound from "./pages/NotFound";
 import AboutPage from "./pages/AboutPage";
@@ -37,6 +38,7 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/map" element={<Map />} />
               <Route path="/embed/map" element={<EmbedMap />} />
+              <Route path="/learn" element={<LearnPage />} />
               <Route path="*" element={<NotFound />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<AboutPage />} />

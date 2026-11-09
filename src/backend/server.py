@@ -1106,6 +1106,110 @@ def get_network_health():
 
 
 # ----------------------------------------
+# EPA AirNow comparison: nearest regulatory PM2.5 monitor.
+# Source: https://files.airnowtech.org/airnow/today/reportingarea.dat
+# Public file, no API key needed, refreshed hourly on AirNow's side.
+# ----------------------------------------
+
+_LICKING_LAT = 40.08
+_LICKING_LNG = -82.45
+_EPA_CACHE: Dict[str, Any] = {"data": None, "ts": 0.0}
+_EPA_CACHE_TTL = 1800  # 30 minutes, AirNow file updates hourly
+
+def _haversine_km(lat1, lng1, lat2, lng2) -> float:
+    R = 6371.0
+    la1 = math.radians(lat1); la2 = math.radians(lat2)
+    dla = math.radians(lat2 - lat1); dlo = math.radians(lng2 - lng1)
+    a = math.sin(dla / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin(dlo / 2) ** 2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def _fetch_nearest_epa_pm25():
+    """Return the current (offset=0) PM2.5 reading from the Ohio regulatory
+    monitor closest to central Licking County, or None if unavailable."""
+    now = time.time()
+    if _EPA_CACHE["data"] is not None and (now - _EPA_CACHE["ts"]) < _EPA_CACHE_TTL:
+        return _EPA_CACHE["data"]
+    try:
+        resp = httpx.get(
+            "https://files.airnowtech.org/airnow/today/reportingarea.dat",
+            timeout=20.0,
+        )
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[epa] AirNow fetch failed: {e}")
+        return _EPA_CACHE.get("data")
+
+    best = None
+    for line in resp.text.splitlines():
+        parts = line.split("|")
+        if len(parts) < 15:
+            continue
+        if parts[8] != "OH" or parts[11] != "PM2.5":
+            continue
+        try:
+            lat = float(parts[9]); lng = float(parts[10])
+            hour_offset = int(parts[4] or "0")
+            aqi = int(parts[12])
+        except Exception:
+            continue
+        # offset 0 = current observation. Negatives are previous days,
+        # positives are forecast. We want current only.
+        if hour_offset != 0:
+            continue
+        dist = _haversine_km(_LICKING_LAT, _LICKING_LNG, lat, lng)
+        row = {
+            "city": parts[7],
+            "state": parts[8],
+            "lat": lat,
+            "lng": lng,
+            "aqi": aqi,
+            "category": parts[13] or None,
+            "obs_time": parts[2] or None,
+            "obs_date": parts[1] or None,
+            "tz": parts[3] or None,
+            "source": (parts[-1] or parts[-2] or None),
+            "distance_km": round(dist, 1),
+        }
+        if best is None or dist < best["distance_km"]:
+            best = row
+    _EPA_CACHE["data"] = best
+    _EPA_CACHE["ts"] = now
+    return best
+
+
+@app.get("/api/epa-comparison")
+def get_epa_comparison():
+    """Compare the CAM-LC network average PM2.5 AQI against the nearest
+    EPA regulatory monitor. Returns both so the dashboard can show them
+    side by side."""
+    epa = _fetch_nearest_epa_pm25()
+
+    sensors = DATA.get("sensors") or []
+    cam_lc = None
+    if sensors:
+        pm25_vals = [float(s.pm25) for s in sensors if s.pm25 is not None]
+        if pm25_vals:
+            avg_pm25 = sum(pm25_vals) / len(pm25_vals)
+            cam_lc = {
+                "sensor_count": len(sensors),
+                "avg_pm25": round(avg_pm25, 2),
+                "avg_aqi": calculate_aqi(avg_pm25),
+                "avg_category": get_aqi_category(avg_pm25)["category"],
+                "avg_color": get_aqi_category(avg_pm25)["color"],
+            }
+
+    return {
+        "epa": epa,
+        "cam_lc": cam_lc,
+        "note": (
+            "EPA monitor is a regulatory-grade reference station. CAM-LC is "
+            "a network of low-cost community sensors; readings typically "
+            "fall within 15 to 25 percent of a nearby regulatory monitor."
+        ),
+    }
+
+
+# ----------------------------------------
 # Run the Server (Uvicorn)
 # ----------------------------------------
 if __name__ == "__main__":
