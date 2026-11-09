@@ -166,12 +166,16 @@ const AQIChart: React.FC<AQIChartProps> = ({
   };
 
   const metricColors: Record<string, string> = {
-    'pm2.5': '#3b82f6',
-    'pm10': '#60a5fa',
-    'pm4': '#818cf8',
-    'pm1': '#7dd3fc',
+    // Chart colors (non-primary categories kept as distinct hues so a user
+    // comparing multiple metrics can tell them apart; the brand olive is
+    // reserved for primary UI accents elsewhere so it doesn't bleed into
+    // "this is PM2.5" signaling).
+    'pm2.5': '#7a9c1f',
+    'pm10': '#a3b76e',
+    'pm4': '#c0d090',
+    'pm1': '#d9e2b3',
     'temperature': '#f97316',
-    'humidity': '#0ea5e9',
+    'humidity': '#06b6d4',
     'pressure': '#a855f7',
     'voc': '#10b981',
     'nox': '#f43f5e',
@@ -223,18 +227,18 @@ if (showLoadingOrNoData) {
     <div className="w-full h-[300px] flex flex-col items-center justify-center animate-fade-in">
       <div className="relative w-16 h-16 mb-4">
         {/* Outer glowing halo spinner */}
-        <div className="absolute inset-0 rounded-full border-[6px] border-t-transparent border-l-transparent border-blue-500 animate-spin-slow blur-sm opacity-80 shadow-[0_0_30px_rgba(59,130,246,0.4)]" />
+        <div className="absolute inset-0 rounded-full border-[6px] border-t-transparent border-l-transparent border-primary animate-spin-slow blur-sm opacity-80 shadow-[0_0_30px_rgba(122,156,31,0.4)]" />
 
         {/* Mid ring - counter-rotating blur ring */}
         <div className="absolute inset-1 rounded-full border-[4px] border-r-transparent border-b-transparent border-sky-400 animate-spin-reverse blur-[2px] opacity-90 shadow-[0_0_12px_rgba(56,189,248,0.5)]" />
 
         {/* Inner aura ring */}
-        <div className="absolute inset-[6px] rounded-full border-[2px] border-blue-300/20 animate-pulse-slow" />
+        <div className="absolute inset-[6px] rounded-full border-[2px] border-primary/20 animate-pulse-slow" />
 
         {/* Center pulse dot */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative w-3.5 h-3.5 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(59,130,246,0.6)]">
-            <div className="absolute inset-0 rounded-full bg-blue-400 opacity-50 animate-ping-fast blur-[2px]" />
+          <div className="relative w-3.5 h-3.5 rounded-full bg-primary shadow-[0_0_10px_rgba(122,156,31,0.6)]">
+            <div className="absolute inset-0 rounded-full bg-primary/60 opacity-50 animate-ping-fast blur-[2px]" />
           </div>
         </div>
       </div>

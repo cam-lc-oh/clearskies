@@ -107,7 +107,7 @@ const CurrentLocationButton = () => {
         const newUserMarker = L.marker(latlng, {
           icon: L.divIcon({
             className: 'user-location-icon',
-            html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #3b82f6;"></div>`,
+            html: `<div style="background-color: #7a9c1f; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #7a9c1f;"></div>`,
             iconSize: [22, 22],
             iconAnchor: [11, 11],
           })

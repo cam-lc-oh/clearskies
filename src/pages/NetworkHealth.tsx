@@ -162,7 +162,7 @@ const NetworkHealth = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <ScrollReveal>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Sensor Network Health
               </h1>
               <p className="text-muted-foreground mt-2">
@@ -185,11 +185,11 @@ const NetworkHealth = () => {
               </div>
 
               <div className="glass-card rounded-xl p-6 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <Wind className="h-6 w-6 text-blue-500" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Wind className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-blue-500">
+                  <div className="text-2xl font-bold text-primary">
                     {data.sensors.length > 0 ? formatPM25(data.sensors.reduce((sum, s) => sum + (s.pm25 || 0), 0) / data.sensors.length) : '0'}
                   </div>
                   <div className="text-sm text-muted-foreground">Avg PM2.5 µg/m³</div>

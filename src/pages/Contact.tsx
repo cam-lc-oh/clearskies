@@ -60,7 +60,7 @@ const Contact = () => {
             },
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-md flex items-center justify-center transition hover:scale-105">
+              <div className="w-14 h-14 rounded-full bg-card text-primary shadow-md flex items-center justify-center transition hover:scale-105">
                 <svg
                   className="w-6 h-6"
                   fill="none"
@@ -71,7 +71,7 @@ const Contact = () => {
                   {item.icon}
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold text-blue-700 dark:text-blue-400">{item.title}</h2>
+              <h2 className="text-lg font-semibold text-primary">{item.title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">{item.desc}</p>
             </div>
           ))}
@@ -84,7 +84,7 @@ const Contact = () => {
 
     {/* Left Column */}
     <div className="text-left">
-      <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 bg-clip-text text-transparent mb-4">
+      <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent mb-4">
         Contact Us
       </h2>
       <p className="text-base text-gray-700 dark:text-gray-300 max-w-md leading-relaxed">
@@ -95,7 +95,7 @@ const Contact = () => {
     {/* Right Column: Soft Blue Morphic Form */}
     <form
   onSubmit={handleSubmit}
-  className="relative z-10 bg-gradient-to-br from-blue-100 via-blue-50 to-white/80 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900/80 backdrop-blur-xl border border-white/40 dark:border-gray-700 shadow-[0_8px_40px_rgba(0,0,0,0.1)] rounded-3xl px-10 py-10 space-y-6 w-full transition hover:shadow-[0_10px_60px_rgba(0,0,0,0.15)]"
+  className="relative z-10 bg-card/80 backdrop-blur-xl border border-border shadow-[0_8px_40px_rgba(0,0,0,0.1)] rounded-3xl px-10 py-10 space-y-6 w-full transition hover:shadow-[0_10px_60px_rgba(0,0,0,0.15)]"
 >
 
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-white/10 dark:from-gray-700/20 dark:via-gray-800/10 dark:to-transparent rounded-3xl pointer-events-none" />
@@ -106,13 +106,13 @@ const Contact = () => {
           name="First Name"
           required
           placeholder="First Name"
-          className="p-4 bg-white/60 dark:bg-gray-700/60 border border-white/50 dark:border-gray-600 rounded-lg w-full text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 shadow-inner backdrop-blur focus:ring-2 focus:ring-blue-300 focus:outline-none"
+          className="p-4 bg-background/60 border border-border rounded-lg w-full text-sm text-foreground placeholder:text-muted-foreground shadow-inner backdrop-blur focus:ring-2 focus:ring-primary/40 focus:outline-none"
         />
         <input
           type="text"
           name="Last Name"
           placeholder="Last Name"
-          className="p-4 bg-white/60 dark:bg-gray-700/60 border border-white/50 dark:border-gray-600 rounded-lg w-full text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 shadow-inner backdrop-blur focus:ring-2 focus:ring-blue-300 focus:outline-none"
+          className="p-4 bg-background/60 border border-border rounded-lg w-full text-sm text-foreground placeholder:text-muted-foreground shadow-inner backdrop-blur focus:ring-2 focus:ring-primary/40 focus:outline-none"
         />
       </div>
 
@@ -121,19 +121,19 @@ const Contact = () => {
         name="Email"
         required
         placeholder="Email Address"
-        className="p-4 bg-white/60 dark:bg-gray-700/60 border border-white/50 dark:border-gray-600 rounded-lg w-full text-sm text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 shadow-inner backdrop-blur focus:ring-2 focus:ring-blue-300 focus:outline-none"
+        className="p-4 bg-background/60 border border-border rounded-lg w-full text-sm text-foreground placeholder:text-muted-foreground shadow-inner backdrop-blur focus:ring-2 focus:ring-primary/40 focus:outline-none"
       />
 
       <textarea
         name="Message"
         required
         placeholder="Your message..."
-        className="p-4 bg-white/60 border border-white/50 rounded-lg w-full h-36 text-sm text-gray-800 placeholder-gray-500 resize-none shadow-inner backdrop-blur focus:ring-2 focus:ring-blue-300 focus:outline-none"
+        className="p-4 bg-background/60 border border-border rounded-lg w-full h-36 text-sm text-foreground placeholder:text-muted-foreground resize-none shadow-inner backdrop-blur focus:ring-2 focus:ring-primary/40 focus:outline-none"
       />
 
       <button
         type="submit"
-        className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
       >
         Submit
       </button>

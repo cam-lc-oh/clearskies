@@ -98,7 +98,7 @@ const HeroSection = () => {
   if (isLoading || !realSensors.length) {
     return (
       <div className="relative pb-12 pt-28 md:pb-16 md:pt-32 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none -z-10 opacity-30 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
+        <div className="absolute inset-0 pointer-events-none -z-10 opacity-30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/20 dark:to-primary/10" />
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="md:flex md:justify-between md:gap-12 items-start">
             <div className="md:flex-1 space-y-6 md:max-w-[50%]">
@@ -144,7 +144,7 @@ const HeroSection = () => {
       <ParticleCanvas aqi={avgAQI} className="-z-10" />
 
       {/* Background gradient */}
-      <div className="absolute inset-0 pointer-events-none -z-10 opacity-30 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800" />
+      <div className="absolute inset-0 pointer-events-none -z-10 opacity-30 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 dark:from-primary/10 dark:via-primary/20 dark:to-primary/10" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="md:flex md:justify-between md:gap-12 items-start">

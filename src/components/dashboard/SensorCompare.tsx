@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { GitCompareArrows } from 'lucide-react';
 
-const COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6'];
+const COLORS = ['#7a9c1f', '#eab308', '#ef4444', '#06b6d4', '#a855f7'];
 
 interface SensorInfo {
   id: string;

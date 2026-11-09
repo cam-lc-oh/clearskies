@@ -226,7 +226,7 @@ useEffect(() => {
                   <select
                     value={selectedSensorId}
                     onChange={(e) => setSelectedSensorId(e.target.value)}
-                    className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                    className="rounded-lg border border-border bg-card text-foreground px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
                   >
                     {sensors.map((sensor) => (
                       <option key={sensor.id} value={sensor.id}>
@@ -241,7 +241,7 @@ useEffect(() => {
                   <select
                     value={selectedMetric}
                     onChange={(e) => setSelectedMetric(e.target.value as typeof metricOptions[number])}
-                    className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                    className="rounded-lg border border-border bg-card text-foreground px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
                   >
                     {metricOptions.map((metric) => (
                       <option key={metric} value={metric}>
@@ -276,7 +276,7 @@ useEffect(() => {
               <div className="flex justify-end mt-2">
                 <button
                   onClick={() => dataTableRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   View Full Table ↓
                 </button>

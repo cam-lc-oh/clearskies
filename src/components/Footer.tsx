@@ -55,9 +55,9 @@ const Footer = () => {
                     </p> */}
                     <p className="text-xs text-muted-foreground mt-2">
                       Made by    
-                      <a href="https://www.linkedin.com/in/aniket-chaudhari-12238833a/" className="text-blue-400 "> Aniket Chaudhari</a>, 
-                      <a href="https://www.linkedin.com/in/gowrishrajagopal/" className="text-blue-400 "> Gowrish Rajagopal</a>, 
-                      <a href="https://www.linkedin.com/in/yasharth-pandey/" className="text-blue-400 "> Yasharth Pandey</a>
+                      <a href="https://www.linkedin.com/in/aniket-chaudhari-12238833a/" className="text-primary hover:text-accent"> Aniket Chaudhari</a>,
+                      <a href="https://www.linkedin.com/in/gowrishrajagopal/" className="text-primary hover:text-accent"> Gowrish Rajagopal</a>,
+                      <a href="https://www.linkedin.com/in/yasharth-pandey/" className="text-primary hover:text-accent"> Yasharth Pandey</a>
                     </p>
                   </div>
 

@@ -31,7 +31,7 @@ const AQSummary = () => {
 
   if (error) {
     return (
-      <section className="py-16 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800/50">
+      <section className="py-16 bg-gradient-to-b from-background to-primary/5 dark:from-background dark:to-primary/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center text-red-500">
             <h2 className="text-xl font-semibold">Error loading air quality summary</h2>
@@ -44,7 +44,7 @@ const AQSummary = () => {
 
   if (isLoading || !realSensors || !hourlyData) {
     return (
-      <section className="py-16 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800/50">
+      <section className="py-16 bg-gradient-to-b from-background to-primary/5 dark:from-background dark:to-primary/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="space-y-4">
             <div className="h-8 w-64 bg-gray-200 animate-pulse rounded"></div>
@@ -86,7 +86,7 @@ if (pm25Values.length >= 4) {
 
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800/50">
+    <section className="py-16 bg-gradient-to-b from-background to-primary/5 dark:from-background dark:to-primary/10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
           <div className="flex-1 space-y-6 max-w-xl">
