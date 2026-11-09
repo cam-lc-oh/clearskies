@@ -146,14 +146,17 @@ const AQIChart: React.FC<AQIChartProps> = ({
     const max = Math.max(...values);
 
     const metricMaxStrategies: Record<string, () => number> = {
-      'pm2.5': () => Math.ceil(Math.min(Math.max(10, max * 1.2), 500)), 
+      'pm2.5': () => Math.ceil(Math.min(Math.max(10, max * 1.2), 500)),
       'pm10': () => Math.ceil(Math.min(Math.max(10, max * 1.2), 500)),
       'pm4': () => Math.ceil(Math.min(Math.max(10, max * 1.2), 500)),
       'pm1': () => Math.ceil(Math.min(Math.max(10, max * 1.2), 500)),
       'temperature': () => Math.ceil(max + 5),
       'humidity': () => 100,
       'pressure': () => Math.ceil(max + 10),
-      'NO2': () => Math.ceil(Math.min(Math.max(0.1, max * 1.2), 5)), 
+      // Sensirion VOC/NOx indexes run 0-500 with 100 as the ambient baseline.
+      'voc': () => 500,
+      'nox': () => 500,
+      'NO2': () => Math.ceil(Math.min(Math.max(0.1, max * 1.2), 5)),
       'O3': () => Math.ceil(Math.min(Math.max(0.1, max * 1.2), 5)),
       'SO2': () => Math.ceil(Math.min(Math.max(0.1, max * 1.2), 5)),
     };
@@ -170,6 +173,8 @@ const AQIChart: React.FC<AQIChartProps> = ({
     'temperature': '#f97316',
     'humidity': '#0ea5e9',
     'pressure': '#a855f7',
+    'voc': '#10b981',
+    'nox': '#f43f5e',
     'NO2': '#ef4444',
     'O3': '#22c55e',
     'SO2': '#eab308',
@@ -184,6 +189,8 @@ const AQIChart: React.FC<AQIChartProps> = ({
     'temperature': '°C',
     'humidity': '%',
     'pressure': 'hPa',
+    'voc': 'index',
+    'nox': 'index',
     'NO2': 'ppm',
     'O3': 'ppm',
     'SO2': 'ppm',

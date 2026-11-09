@@ -36,10 +36,13 @@ const sensorIdFromQuery = searchParams.get('sensorId');
   const [sensors, setSensors] = useState<SensorInfo[]>([]);
   const [selectedSensorId, setSelectedSensorId] = useState<string>('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  // SimpleAQ returns data for these metrics today. NO2/O3/SO2 are left out
+  // because their endpoints return empty arrays on CAM-LC's devices; once
+  // SimpleAQ ships them, add back here.
   const metricOptions = [
-    "pm2.5", "pm10", "pm4", "pm1",
+    "pm2.5", "pm1", "pm10", "pm4",
     "temperature", "humidity", "pressure",
-    "NO2", "O3", "SO2"
+    "voc", "nox",
   ] as const;
 
   type MetricOption = typeof metricOptions[number];
