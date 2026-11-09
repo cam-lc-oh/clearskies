@@ -401,18 +401,32 @@ const AQMap = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1 text-[11px] mb-2">
+                  <div className="grid grid-cols-3 gap-1 text-[11px] mb-1">
                     <div className="text-center">
                       <div className="text-gray-500 text-[9px] uppercase">PM2.5</div>
                       <div className="font-semibold">{formatPM25(sensor.pm25)}</div>
                     </div>
                     <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">PM1</div>
+                      <div className="font-semibold">{(sensor as any).pm1 != null ? (sensor as any).pm1.toFixed(1) : '—'}</div>
+                    </div>
+                    <div className="text-center">
                       <div className="text-gray-500 text-[9px] uppercase">Temp</div>
                       <div className="font-semibold">{sensor.temperature?.toFixed(0) ?? '—'}°C</div>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-[11px] mb-2">
                     <div className="text-center">
                       <div className="text-gray-500 text-[9px] uppercase">Humid</div>
                       <div className="font-semibold">{sensor.humidity?.toFixed(0) ?? '—'}%</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">VOC</div>
+                      <div className="font-semibold">{(sensor as any).vocIndex != null ? Math.round((sensor as any).vocIndex) : '—'}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-500 text-[9px] uppercase">NOx</div>
+                      <div className="font-semibold">{(sensor as any).noxIndex != null ? Math.round((sensor as any).noxIndex) : '—'}</div>
                     </div>
                   </div>
 

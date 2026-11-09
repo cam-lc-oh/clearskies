@@ -21,6 +21,10 @@ export interface Sensor {
   region?: string;
   /** Human-readable label from the sheet (e.g. "CAW25010", "DIRTYBOX"). */
   nickname?: string;
+  /** Additional pollutant signals that SimpleAQ reports. */
+  pm1?: number | null;
+  vocIndex?: number | null;
+  noxIndex?: number | null;
 }
 
 export interface HistoricalDataPoint {

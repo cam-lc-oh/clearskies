@@ -203,6 +203,11 @@ DATA_VAL_DICT = {
     "temperature": "temperature_C",
     "humidity": "humidity_percent",
     "pressure": "pressure_hPa",
+    "voc": "voc_index",
+    "nox": "nox_index",
+    # These SimpleAQ fields always come back empty today; left in place so
+    # the frontend can request them without erroring. Remove once their
+    # device catalog starts reporting molecular concentrations.
     "NO2": "NO2_concentration_ppm",
     "O3": "O3_concentration_ppm",
     "SO2": "SO2_concentration_ppm",
@@ -320,6 +325,9 @@ class Sensor(BaseModel):
     aqiCategory: Optional[AQICategory] = None
     region: Optional[str] = None
     nickname: Optional[str] = None
+    pm1: Optional[float] = None
+    vocIndex: Optional[float] = None
+    noxIndex: Optional[float] = None
 
 
 class HistoricalDataPoint(BaseModel):
@@ -422,7 +430,10 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
             if str(data.get("name") or "").strip().lower() in allowed
         }
 
-    fields = ["pm2.5_ug_m3", "pressure_hPa", "temperature_C", "humidity_percent"]
+    fields = [
+        "pm2.5_ug_m3", "pressure_hPa", "temperature_C", "humidity_percent",
+        "pm1.0_ug_m3", "voc_index", "nox_index",
+    ]
     timestamp_str = datetime.now().isoformat()
     range_hours = 1
 
@@ -502,6 +513,19 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
             except Exception:
                 last_updated = datetime.now()
 
+            def _last_float(field_key: str):
+                arr = field_data.get(field_key, [])
+                if arr:
+                    try:
+                        return float(arr[-1])
+                    except Exception:
+                        return None
+                return None
+
+            pm1 = _last_float("pm1.0_ug_m3")
+            voc_index = _last_float("voc_index")
+            nox_index = _last_float("nox_index")
+
             allowed_meta = (
                 allowed.get(str(name or "").strip().lower(), {}) if allowed else {}
             )
@@ -518,6 +542,9 @@ async def generate_sensors_async(sensor_json: dict) -> List[Sensor]:
                 aqiCategory=get_aqi_category(pm25),
                 region=allowed_meta.get("region"),
                 nickname=allowed_meta.get("nickname"),
+                pm1=pm1,
+                vocIndex=voc_index,
+                noxIndex=nox_index,
             )
             sensors.append(sensor_obj)
         except Exception as e:
