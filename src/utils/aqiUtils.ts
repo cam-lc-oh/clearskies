@@ -1,72 +1,72 @@
 /**
- * Air Quality Index (AQI) calculation utilities
- * Based on EPA's AQI calculation method: https://www.airnow.gov/aqi/aqi-basics/
+ * US EPA PM2.5 Air Quality Index utilities (2024 revision).
+ * Breakpoints: https://www.airnow.gov/sites/default/files/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf
+ * Formula:     https://www.airnow.gov/aqi/aqi-calculator-concentration/
+ *
+ * Each breakpoint carries both its concentration range AND its AQI range,
+ * so the interpolation is correct at Very Unhealthy and Hazardous levels
+ * (categories that span more than 50 AQI points).
  */
+export interface AQIBreakpoint {
+  min: number;
+  max: number;
+  aqiLo: number;
+  aqiHi: number;
+  category: string;
+  color: string;
+}
 
-// AQI breakpoints for PM2.5 (in µg/m³)
-export const AQI_BREAKPOINTS = [
-  { min: 0, max: 12, category: 'Good', color: '#4ade80' },
-  { min: 12.1, max: 35.4, category: 'Moderate', color: '#facc15' },
-  { min: 35.5, max: 55.4, category: 'Unhealthy for Sensitive Groups', color: '#fb923c' },
-  { min: 55.5, max: 150.4, category: 'Unhealthy', color: '#f87171' },
-  { min: 150.5, max: 250.4, category: 'Very Unhealthy', color: '#c084fc' },
-  { min: 250.5, max: 500, category: 'Hazardous', color: '#ef4444' },
+export const AQI_BREAKPOINTS: AQIBreakpoint[] = [
+  { min: 0.0,   max: 9.0,   aqiLo: 0,   aqiHi: 50,  category: 'Good',                           color: '#4ade80' },
+  { min: 9.1,   max: 35.4,  aqiLo: 51,  aqiHi: 100, category: 'Moderate',                       color: '#facc15' },
+  { min: 35.5,  max: 55.4,  aqiLo: 101, aqiHi: 150, category: 'Unhealthy for Sensitive Groups', color: '#fb923c' },
+  { min: 55.5,  max: 125.4, aqiLo: 151, aqiHi: 200, category: 'Unhealthy',                      color: '#f87171' },
+  { min: 125.5, max: 225.4, aqiLo: 201, aqiHi: 300, category: 'Very Unhealthy',                 color: '#c084fc' },
+  { min: 225.5, max: 500.4, aqiLo: 301, aqiHi: 500, category: 'Hazardous',                      color: '#7f1d1d' },
 ];
 
-// Calculate AQI based on PM2.5 concentration
+/** Compute AQI from a raw PM2.5 reading in µg/m³ (24-hour average). */
 export const calculateAQI = (pm25: number): number => {
-  if (pm25 < 0) return 0;
-  
-  for (const breakpoint of AQI_BREAKPOINTS) {
-    if (pm25 <= breakpoint.max) {
-      // Linear interpolation formula
-      const lowerAQI = breakpoint === AQI_BREAKPOINTS[0] ? 0 : 
-        AQI_BREAKPOINTS.indexOf(breakpoint) * 50;
-      const upperAQI = lowerAQI + 50;
-      
-      const lowerConc = breakpoint.min;
-      const upperConc = breakpoint.max;
-      
-      // AQI formula: ((upperAQI - lowerAQI) / (upperConc - lowerConc)) * (concentration - lowerConc) + lowerAQI
-      return Math.round(((upperAQI - lowerAQI) / (upperConc - lowerConc)) * (pm25 - lowerConc) + lowerAQI);
+  if (pm25 == null || pm25 < 0) return 0;
+  // EPA truncates concentration to one decimal before applying the formula.
+  const c = Math.trunc(pm25 * 10) / 10;
+  for (const bp of AQI_BREAKPOINTS) {
+    if (c <= bp.max) {
+      const spanAqi = bp.aqiHi - bp.aqiLo;
+      const spanC = bp.max - bp.min;
+      if (spanC <= 0) return bp.aqiLo;
+      return Math.round((spanAqi / spanC) * (c - bp.min) + bp.aqiLo);
     }
   }
-  
-  return 500; // Maximum AQI value
+  return 500;
 };
 
-// Get AQI category based on PM2.5 concentration
 export const getAQICategory = (pm25: number): { category: string; color: string } => {
-  for (const breakpoint of AQI_BREAKPOINTS) {
-    if (pm25 <= breakpoint.max) {
-      return { 
-        category: breakpoint.category, 
-        color: breakpoint.color 
-      };
-    }
+  if (pm25 == null || pm25 < 0) {
+    return { category: 'Good', color: AQI_BREAKPOINTS[0].color };
   }
-  
-  return { 
-    category: 'Hazardous', 
-    color: '#ef4444' 
-  };
+  for (const bp of AQI_BREAKPOINTS) {
+    if (pm25 <= bp.max) return { category: bp.category, color: bp.color };
+  }
+  const last = AQI_BREAKPOINTS[AQI_BREAKPOINTS.length - 1];
+  return { category: last.category, color: last.color };
 };
 
-// Get health recommendations based on AQI category
+/** Actionable advice per AQI category, aligned with EPA AirNow guidance. */
 export const getHealthRecommendations = (category: string): string => {
   switch (category) {
     case 'Good':
-      return 'Air quality is satisfactory, and air pollution poses little or no risk.';
+      return 'Air quality is satisfactory. No restrictions on outdoor activity.';
     case 'Moderate':
-      return 'Air quality is acceptable. However, some pollutants may be a concern for a small number of people who are unusually sensitive to air pollution.';
+      return 'Unusually sensitive individuals should consider reducing prolonged or heavy outdoor exertion.';
     case 'Unhealthy for Sensitive Groups':
-      return 'Members of sensitive groups may experience health effects. The general public is less likely to be affected.';
+      return 'People with heart or lung disease, older adults, children, and teens should reduce prolonged or heavy outdoor exertion.';
     case 'Unhealthy':
-      return 'Some members of the general public may experience health effects; members of sensitive groups may experience more serious health effects.';
+      return 'Everyone should reduce prolonged or heavy outdoor exertion. Sensitive groups should avoid it entirely.';
     case 'Very Unhealthy':
-      return 'Health alert: The risk of health effects is increased for everyone.';
+      return 'Everyone should avoid prolonged or heavy outdoor exertion; sensitive groups should remain indoors and keep activity levels low.';
     case 'Hazardous':
-      return 'Health warning of emergency conditions: everyone is more likely to be affected.';
+      return 'Health emergency: everyone should remain indoors with windows closed and avoid all outdoor physical activity.';
     default:
       return 'Air quality information is currently unavailable.';
   }

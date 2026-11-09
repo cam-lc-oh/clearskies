@@ -185,13 +185,18 @@ cache = DataCache()
 # ----------------------------------------
 
 
+# PM2.5 AQI breakpoints (US EPA, 2024 revision; 24-hour average, ug/m3).
+# aqi_lo / aqi_hi make the per-category AQI range explicit so interpolation
+# is correct across all categories (the old code assumed every category
+# spanned 50 AQI points, which under-reported Very Unhealthy and Hazardous
+# readings where the categories actually span 100 and 200 points).
 AQI_BREAKPOINTS = [
-    {"min": 0, "max": 12, "category": "Good", "color": "#4ade80"},
-    {"min": 12.1, "max": 35.4, "category": "Moderate", "color": "#facc15"},
-    {"min": 35.5, "max": 55.4, "category": "Unhealthy for Sensitive Groups", "color": "#fb923c"},
-    {"min": 55.5, "max": 150.4, "category": "Unhealthy", "color": "#f87171"},
-    {"min": 150.5, "max": 250.4, "category": "Very Unhealthy", "color": "#c084fc"},
-    {"min": 250.5, "max": 500, "category": "Hazardous", "color": "#ef4444"}
+    {"min": 0.0,   "max": 9.0,   "aqi_lo": 0,   "aqi_hi": 50,  "category": "Good",                           "color": "#4ade80"},
+    {"min": 9.1,   "max": 35.4,  "aqi_lo": 51,  "aqi_hi": 100, "category": "Moderate",                       "color": "#facc15"},
+    {"min": 35.5,  "max": 55.4,  "aqi_lo": 101, "aqi_hi": 150, "category": "Unhealthy for Sensitive Groups", "color": "#fb923c"},
+    {"min": 55.5,  "max": 125.4, "aqi_lo": 151, "aqi_hi": 200, "category": "Unhealthy",                      "color": "#f87171"},
+    {"min": 125.5, "max": 225.4, "aqi_lo": 201, "aqi_hi": 300, "category": "Very Unhealthy",                 "color": "#c084fc"},
+    {"min": 225.5, "max": 500.4, "aqi_lo": 301, "aqi_hi": 500, "category": "Hazardous",                      "color": "#7f1d1d"},
 ]
 
 
@@ -233,42 +238,52 @@ INVERSE_DATA_VAL_DICT = {v: k for k, v in DATA_VAL_DICT.items()}
 
 
 def calculate_aqi(pm25: float) -> int:
-    if pm25 < 0:
+    """EPA AQI for PM2.5 using 2024 breakpoints.
+
+    Concentration is truncated to one decimal (per 40 CFR Appendix G),
+    then linearly interpolated inside the matching category.
+    """
+    if pm25 is None or pm25 < 0:
         return 0
-    for i, bp in enumerate(AQI_BREAKPOINTS):
-        if pm25 <= bp["max"]:
-            lower_aqi = 0 if i == 0 else i * 50
-            upper_aqi = lower_aqi + 50
-            lower_conc = bp["min"]
-            upper_conc = bp["max"]
-            aqi = ((upper_aqi - lower_aqi) / (upper_conc - lower_conc)) * (pm25 - lower_conc) + lower_aqi
-            return round(aqi)
+    c = int(pm25 * 10) / 10.0
+    for bp in AQI_BREAKPOINTS:
+        if c <= bp["max"]:
+            span_aqi = bp["aqi_hi"] - bp["aqi_lo"]
+            span_c = bp["max"] - bp["min"]
+            if span_c <= 0:
+                return bp["aqi_lo"]
+            return round(span_aqi / span_c * (c - bp["min"]) + bp["aqi_lo"])
     return 500
 
 
 def get_aqi_category(pm25: float) -> dict:
+    if pm25 is None or pm25 < 0:
+        return {"category": "Good", "color": AQI_BREAKPOINTS[0]["color"]}
     for bp in AQI_BREAKPOINTS:
         if pm25 <= bp["max"]:
             return {"category": bp["category"], "color": bp["color"]}
-    return {"category": "Hazardous", "color": "#ef4444"}
+    return {"category": "Hazardous", "color": AQI_BREAKPOINTS[-1]["color"]}
 
 
 def get_health_recommendations(category: str) -> str:
+    """Actionable guidance per AQI category (aligned with EPA AirNow advice)."""
     if category == "Good":
-        return "Air quality is satisfactory, and air pollution poses little or no risk."
+        return "Air quality is satisfactory. No restrictions on outdoor activity."
     elif category == "Moderate":
-        return ("Air quality is acceptable. However, some pollutants may be a concern for "
-                "a small number of people who are unusually sensitive to air pollution.")
+        return ("Unusually sensitive individuals should consider reducing prolonged or "
+                "heavy outdoor exertion.")
     elif category == "Unhealthy for Sensitive Groups":
-        return ("Members of sensitive groups may experience health effects. The general public is "
-                "less likely to be affected.")
+        return ("People with heart or lung disease, older adults, children, and teens "
+                "should reduce prolonged or heavy outdoor exertion.")
     elif category == "Unhealthy":
-        return ("Some members of the general public may experience health effects; members of sensitive "
-                "groups may experience more serious health effects.")
+        return ("Everyone should reduce prolonged or heavy outdoor exertion. Sensitive "
+                "groups should avoid it entirely.")
     elif category == "Very Unhealthy":
-        return "Health alert: The risk of health effects is increased for everyone."
+        return ("Everyone should avoid prolonged or heavy outdoor exertion; sensitive "
+                "groups should remain indoors and keep activity levels low.")
     elif category == "Hazardous":
-        return "Health warning of emergency conditions: everyone is more likely to be affected."
+        return ("Health emergency: everyone should remain indoors with windows closed "
+                "and avoid all outdoor physical activity.")
     else:
         return "Air quality information is currently unavailable."
 
